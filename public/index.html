@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technical Talks Event Schedule</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 1rem 0;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .search-container {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .search-container input[type="text"] {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        .schedule {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .schedule-item {
+            display: flex;
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+            align-items: flex-start;
+        }
+        .schedule-item:last-child {
+            border-bottom: none;
+        }
+        .time {
+            flex: 0 0 150px;
+            font-weight: bold;
+            color: #555;
+            font-size: 1.1rem;
+            padding-right: 20px;
+        }
+        .details {
+            flex-grow: 1;
+        }
+        .details h3 {
+            margin-top: 0;
+            margin-bottom: 5px;
+            color: #0056b3;
+            font-size: 1.4rem;
+        }
+        .details .speakers {
+            font-style: italic;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .details .categories span {
+            display: inline-block;
+            background-color: #e0e7ff;
+            color: #3f51b5;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.85rem;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .details .description {
+            font-size: 0.95rem;
+            color: #444;
+        }
+        .schedule-item.break {
+            background-color: #f9f9f9;
+            padding: 15px 20px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .schedule-item.break .time {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            padding-right: 0;
+        }
+        .schedule-item.break h3 {
+            color: #333;
+        }
+        .schedule-item.transition {
+            background-color: #e0e0e0;
+            color: #666;
+            font-style: italic;
+            text-align: center;
+            padding: 10px 0;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: block; /* Override flex for transitions */
+            font-size: 0.9rem;
+        }
+        .schedule-item.transition .time {
+            display: inline-block;
+            margin-right: 10px;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            background-color: #333;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .schedule-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .time {
+                margin-bottom: 10px;
+                padding-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Technical Talks Event</h1>
+        <p>A Day of Innovation and Learning</p>
+    </header>
+
+    <div class="container">
+        <div class="search-container">
+            <input type="text" id="categorySearch" placeholder="Search by category (e.g., AI, JavaScript, Cloud)">
+        </div>
+
+        <section id="schedule" class="schedule">
+            <h2>Event Schedule</h2>
+            <div id="schedule-list">
+                <!-- Schedule items will be rendered here by JavaScript -->
+                <p>Loading schedule...</p>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Technical Talks Event. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const scheduleList = document.getElementById('schedule-list');
+            const categorySearchInput = document.getElementById('categorySearch');
+            let allScheduleData = []; // Store original data for filtering
+
+            async function fetchSchedule() {
+                try {
+                    const response = await fetch('/api/schedule');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    allScheduleData = data;
+                    renderSchedule(allScheduleData);
+                } catch (error) {
+                    console.error('Error fetching schedule:', error);
+                    scheduleList.innerHTML = '<p>Failed to load schedule. Please try again later.</p>';
+                }
+            }
+
+            function renderSchedule(data) {
+                scheduleList.innerHTML = ''; // Clear previous content
+
+                if (data.length === 0) {
+                    scheduleList.innerHTML = '<p>No talks found for this category.</p>';
+                    return;
+                }
+
+                data.forEach(item => {
+                    const itemElement = document.createElement('div');
+                    itemElement.classList.add('schedule-item');
+
+                    if (item.type === 'break') {
+                        itemElement.classList.add('break');
+                        itemElement.innerHTML = `
+                            <div class="time">${item.startTime} - ${item.endTime}</div>
+                            <div class="details">
+                                <h3>${item.title}</h3>
+                                <p>${item.description}</p>
+                            </div>
+                        `;
+                    } else if (item.type === 'transition') {
+                        itemElement.classList.add('transition');
+                        itemElement.innerHTML = `
+                            <div class="time">${item.startTime} - ${item.endTime}</div>
+                            <div class="details">
+                                ${item.title} (${item.duration} min)
+                            </div>
+                        `;
+                    } else { // type === 'talk'
+                        itemElement.innerHTML = `
+                            <div class="time">${item.startTime} - ${item.endTime}</div>
+                            <div class="details">
+                                <h3>${item.title}</h3>
+                                <p class="speakers">${item.speakers.join(' & ')}</p>
+                                <p class="categories">
+                                    ${item.categories.map(cat => `<span>${cat}</span>`).join('')}
+                                </p>
+                                <p class="description">${item.description}</p>
+                            </div>
+                        `;
+                    }
+                    scheduleList.appendChild(itemElement);
+                });
+            }
+
+            function filterSchedule() {
+                const searchTerm = categorySearchInput.value.toLowerCase().trim();
+
+                if (!searchTerm) {
+                    renderSchedule(allScheduleData); // Show all if search is empty
+                    return;
+                }
+
+                const filteredData = allScheduleData.filter(item => {
+                    if (item.type === 'talk' && item.categories) {
+                        return item.categories.some(cat => cat.toLowerCase().includes(searchTerm));
+                    }
+                    return false; // Don't filter breaks or transitions by category
+                });
+                renderSchedule(filteredData);
+            }
+
+            categorySearchInput.addEventListener('keyup', filterSchedule);
+
+            fetchSchedule(); // Initial fetch and render
+        });
+    </script>
+</body>
+</html>
